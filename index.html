@@ -1,2 +1,68 @@
-<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v1.0.0-rc.1/leaflet.css" />
-<script src="http://cdn.leafletjs.com/leaflet/v1.0.0-rc.1/leaflet.js"></script>
+<!DOCTYPE html>
+<!--Based on https://github.com/mjfoster83/web-map-workshop/blob/master/7_advancedMapping_CartoDB/index-completed.html-->
+<html>
+  <head>
+    <meta charset=utf-8 name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Logan Bike Parking</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v1.0.0-rc.1/leaflet.css" />
+      <script src="http://cdn.leafletjs.com/leaflet/v1.0.0-rc.1/leaflet.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+      
+  </head>
+  <body>
+
+      <div id="map" style="width: 100%;height: 100%;position:absolute" title=""></div>
+<script>
+      		// Add Data from CartoDB using the SQL API
+		// Declare Variables
+		// Create Global Variable to hold CartoDB points
+		var cartoDBData = null;
+
+		// Create Leaflet map object
+		var map = L.map('map', { center: [42.3690338,-71.0218535], zoom: 16});
+		// Add Tile Layer basemap
+		// Find your own at https://leaflet-extras.github.io/leaflet-providers/preview/
+        var Thunderforest_OpenCycleMap = L.tileLayer('http://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        });
+		Thunderforest_OpenCycleMap.addTo(map);
+
+		//Fetches
+		var getData = "https://bcu.cartodb.com/api/v2/sql?format=GeoJSON&q=SELECT name, the_geom, bicycle_parking, capacity, covered, surveillance FROM logan_bikeparking" ;
+
+        var parkingIcon = L.icon({
+            iconUrl:    'img/Bike.png',
+            iconSize:   [64, 64],
+            iconAnchor: [32, 32]
+            });
+    
+    
+		function getGeoJSON() {
+			$.getJSON(getData, function (data) {
+				cartoDBData = L.geoJson(data, {
+					onEachFeature: function (feature, layer) {
+                        var popup = '';
+                        
+                        if(feature.properties.name){
+                            popup = '<h4>'+feature.properties.name+'</h4><br>'
+                        }
+                        
+                        popup = popup + '<b>Capacity: </b>' + feature.properties.capacity
+                                    + '<br><b>Covered: </b>' + feature.properties.covered
+                                    + '<br><b>Surveillance: </b>' + feature.properties.surveillance;
+                        
+						layer.bindPopup('' + popup + '');
+                        
+					}, pointToLayer: function (feature, latlng) {
+                    var marker = L.marker(latlng,{icon: parkingIcon});
+                    return marker;
+                }}).addTo(map);
+			});
+		}
+
+		getGeoJSON();
+    
+    </script>      
+      
+    </body>
+</html>
